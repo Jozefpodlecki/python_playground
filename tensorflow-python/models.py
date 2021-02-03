@@ -1,6 +1,6 @@
 from tensorflow import keras, saved_model
-from tesnorflow.keras.layers import Sequential, Conv2D, MaxPooling2D, Flatten, Dense, BatchNormalization, Activation
-from base.base_model import BaseModel
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, BatchNormalization, Activation
 
 def get_cnn_model(input_shape, number_of_categories):
     return Sequential([
@@ -18,7 +18,7 @@ def get_cnn_model(input_shape, number_of_categories):
             kernel_size=(3, 3),
             activation='relu'),
         Flatten(),
-        Dense(64),
+        Dense(128),
         BatchNormalization(),
         Activation("relu"),
         Dense(number_of_categories),
