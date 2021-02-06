@@ -18,13 +18,18 @@ def get_train_data(
     image_height,
     channels_count, batch_size):
 
+    labels_dict = {item["label"]: index for index, item in enumerate(items)}
+    start_index = 0
+    end_index = batch_size - 1 
+
     while True:
 
         batch = np.empty((batch_size, image_width, image_height, channels_count))
         labels = np.empty(batch_size, dtype=np.int32)
         index = 0
-        sample = random.sample(items, batch_size)
-        labels_dict = {item["label"]: index for index, item in enumerate(sample)}
+        sample = items[start_index:end_index]
+        start_index = end_index
+        end_index = end_index + batch_size
 
         for item in sample:
 

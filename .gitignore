@@ -1,1 +1,4 @@
-tensorflow-python/fonts
+tensorflow/image_classifier/fonts
+tensorflow/image_classifier/images
+tensorflow/image_classifier/logs
+tensorflow/image_classifier/training_checkpoint
