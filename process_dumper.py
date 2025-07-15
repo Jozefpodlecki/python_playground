@@ -6,16 +6,10 @@ import time
 import win32process
 import logging
 
-from structs import MEMORY_BASIC_INFORMATION, MODULEINFO
+from structs import MEM_COMMIT, MEMORY_BASIC_INFORMATION, MODULEINFO, PROCESS_ALL_ACCESS
+from utils import humanize_protect, humanize_state
 
 logger = logging.getLogger(__name__)
-
-PROCESS_ALL_ACCESS = 0x1F0FFF
-GENERIC_WRITE = 0x40000000
-CREATE_ALWAYS = 2
-FULL_MEMORY = 0x00000002
-MEM_COMMIT = 0x1000
-PAGE_READWRITE = 0x04
 
 psapi = ctypes.WinDLL("psapi")
 dbghelp = ctypes.WinDLL('Dbghelp')
@@ -94,19 +88,31 @@ class ProcessDumper:
         mbi = MEMORY_BASIC_INFORMATION()
 
         while VirtualQueryEx(self.hProcess, ctypes.c_void_p(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
-            logging.info(f"{mbi.State}")
-            if mbi.State == MEM_COMMIT:
-                base = ctypes.cast(mbi.BaseAddress, ctypes.c_void_p).value
+            
+            base = ctypes.cast(mbi.BaseAddress, ctypes.c_void_p).value
+            size = mbi.RegionSize
+            state = mbi.State
+            protect = mbi.Protect
+            
+            if base is None:
+                base_addr = 0
+                base_str = "None"
+            else:
+                base_addr = base
+                base_str = f"0x{base:X}"
 
-                logger.info(f"Block: 0x{mbi.BaseAddress:X}, {mbi.RegionSize}, {mbi.Protect}")
+            logging.info(f"Region: {base_str} Size: {size} State: {humanize_state(state)} Protect: {humanize_protect(protect)}")
 
-                buffer = ctypes.create_string_buffer(mbi.RegionSize)
+            if state == MEM_COMMIT:
+                buffer = ctypes.create_string_buffer(size)
                 bytes_read = ctypes.c_size_t(0)
+                success = ReadProcessMemory(self.hProcess, ctypes.c_void_p(base), buffer, size, ctypes.byref(bytes_read))
 
-                if ReadProcessMemory(self.hProcess, ctypes.c_void_p(address), buffer, mbi.RegionSize, ctypes.byref(bytes_read)):
-                    dump_file.write(struct.pack('<Q', base))
-                    dump_file.write(struct.pack('<Q', mbi.RegionSize))
-                    dump_file.write(struct.pack('<I', mbi.Protect))
+                if success and bytes_read.value == size:
                     dump_file.write(buffer.raw[:bytes_read.value])
-
-            address += mbi.RegionSize
+                    logging.debug(f"Dumped {bytes_read.value} bytes from 0x{base:X}")
+                else:
+                    logging.warning(f"Failed to read full memory at 0x{base:X}. Expected {size} bytes, read {bytes_read.value if success else 0}. Filling with zeros.")
+                    dump_file.write(b'\x00' * size)
+                    
+            address = base_addr + size
