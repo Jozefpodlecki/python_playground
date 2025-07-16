@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 from process_dumper import ProcessDumper
-
+from pe_analyser import PeAnalyser
 
 def main():
     logging.basicConfig(
@@ -20,9 +20,12 @@ def main():
 
     file_path = sys.argv[1]
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    dumper = ProcessDumper(file_path)
+    
+    # dumper = ProcessDumper(file_path)
+    # dumper.run(script_dir)
 
-    dumper.run(script_dir)
+    analyser = PeAnalyser(file_path)
+    analyser.dump_text_section("text_section.asm")
 
 if __name__ == "__main__":
     main()
