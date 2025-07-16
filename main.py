@@ -26,6 +26,7 @@ def main():
 
     analyser = PeAnalyser(file_path)
     analyser.dump_text_section("text_section.asm")
+    analyser.dump_data_section("data_section.bin")
 
 if __name__ == "__main__":
     main()

@@ -16,6 +16,20 @@ class PeAnalyser:
         self.image_base = self.pe.OPTIONAL_HEADER.ImageBase
         self.ptr_size = 8 if self.pe.OPTIONAL_HEADER.Magic == 0x20b else 4
 
+    def dump_data_section(self, raw_output_path):
+        for section in self.pe.sections:
+            name = section.Name.decode(errors='ignore').strip('\x00')
+            if name == '.data':
+                data = section.get_data()
+
+                with open(raw_output_path, 'wb') as f:
+                    f.write(data)
+
+                print(f"Raw bytes of .data section saved to: {raw_output_path}")
+                return
+
+        raise Exception("No .data section found.")
+
     def dump_text_section(self, output_file_path):
         for section in self.pe.sections:
             name = section.Name.decode(errors='ignore').strip('\x00')
