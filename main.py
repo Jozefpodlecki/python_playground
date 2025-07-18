@@ -25,7 +25,8 @@ def main():
     # dumper.run(script_dir)
 
     analyser = PeAnalyser(file_path)
-    analyser.dump_functions("functions.txt")
+    analyser.print_dll_calls()
+    # analyser.dump_functions("functions.txt")
     # analyser.dump_text_section("text_section.asm")
     # analyser.dump_data_section("data_section.bin")
 

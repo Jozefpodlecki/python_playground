@@ -4,7 +4,6 @@ from capstone.x86 import X86_REG_RIP
 
 def dump_functions(md, execution_start, code, base_addr, output_file_path):
    
-
     instrs = list(md.disasm(code, base_addr))
     function_starts = set()
     function_starts.add(execution_start)
